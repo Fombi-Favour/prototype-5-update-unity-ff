@@ -9,14 +9,17 @@ public class GameManager : MonoBehaviour
 {
     public List<GameObject> targets;
     public TextMeshProUGUI scoreText;
+    public TextMeshProUGUI timeText;
     public TextMeshProUGUI gameOverText;
     public TextMeshProUGUI livesText;
     public GameObject titleScreen;
     public GameObject pauseScreen;
     public Button restartButton;
+    public bool takingAway = false;
     public bool isGameActive;
     private bool paused;
     private int score;
+    public int secondsLeft;
     private int lives;
     private float spawnRate = 1.0f;
     // Start is called before the first frame update
@@ -32,6 +35,11 @@ public class GameManager : MonoBehaviour
         {
             ChangedPaused();
         }
+
+        if (takingAway == false && secondsLeft > 0)
+        {
+            StartCoroutine(TimeTake());
+        }
     }
 
     IEnumerator SpawnTarget()
@@ -42,6 +50,27 @@ public class GameManager : MonoBehaviour
             int index = Random.Range(0, targets.Count);
             Instantiate(targets[index]);
         }
+    }
+
+    IEnumerator TimeTake()
+    {
+        takingAway = true;
+        yield return new WaitForSeconds(1);
+        secondsLeft -= 1;
+        if (secondsLeft < 10)
+        {
+            timeText.text = "Time: 0" + secondsLeft;
+        }
+        else
+        {
+            timeText.text = "Time: " + secondsLeft;
+        }
+        if (secondsLeft == 0)
+        {
+            GameOver();
+        }
+
+        takingAway = false;
     }
 
     public void UpdateScore(int scoreToAdd)
@@ -75,8 +104,9 @@ public class GameManager : MonoBehaviour
     public void StartGame(int difficulty)
     {
         isGameActive = true;
-        score = 0;
         StartCoroutine(SpawnTarget());
+        score = 0;
+        secondsLeft = 61;
         UpdateScore(0);
         UpdateLives(3);
         titleScreen.gameObject.SetActive(false);
